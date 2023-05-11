@@ -3,17 +3,17 @@
   <title>OpenAI Quickstart</title>
   <link
     rel="shortcut icon"
-    href="{{ url_for('static', filename='dog.png') }}"
+    href="{{ url_for('static', filename='shark_coach.png') }}"
   />
   <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}" />
 </head>
 
 <body>
-  <img src="{{ url_for('static', filename='dog.png') }}" class="icon" />
-  <h3>Name my pet</h3>
-  <form action="/" method="post">
-    <input type="text" name="animal" placeholder="Enter an animal" required />
-    <input type="submit" value="Generate names" />
+  <img src="{{ url_for('static', filename='shark_coach.png') }}" class="icon" />
+  <h3>Whattup Champ it's coach GPT-4</h3>
+  <form action="/workout_index" method="post">
+    <input type="text" name="goal" placeholder="Back in my day we ran till our legs fell off" required />
+    <input type="submit" value="Generate workouts" />
   </form>
   {% if result %}
   <div class="result">{{ result }}</div>

@@ -62,45 +62,48 @@ def workout_index():
 
     route_suggestions = get_route_suggestions(athlete_activities, access_token)
 
+    # Load the previous conversation from a file
+    try:
+        with open('data.json', 'r') as file:
+            conversation = json.load(file)
+    except FileNotFoundError:
+        print('Your conversation was lost.')
+
     if request.method == "POST":
-        count = request.form.get('count', 0, type=int)
-        count += 1
-        # Load the previous conversation from a file
-        if count == 1:
+        count = session.get('count')
+
+        if count == 0:
             goal = request.form["goal"]
             prompt = generate_prompt(goal, athlete_stats, athlete_activities, route_suggestions)
-            response = openai.Completion.create(
-                model="text-davinci-003",
-                prompt=prompt,
+            entry = {"role": "user", "content": prompt}
+            conversation.append(entry)
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=conversation,
                 temperature=0.6,
             )
-
             # Open the file in append mode
-            with open('conversation/conversation.txt', 'a') as f:
-                # Append the response to the file
-                f.write(response.choices[0].text + '\n')
+            with open('conversation/conversation.json', 'w') as file:
+                json.dump(conversation, file)
 
-            return redirect(url_for("index", result=response.choices[0].text))
+            session['count'] += 1
+
+            return redirect(url_for("workout_index", result=response.choices[0].text))
         else:
-            try:
-                with open('conversation/conversation.txt', 'r') as file:
-                    conversation = file.read()
-            except FileNotFoundError:
-                print('Your conversation was lost.')
             question = request.form["Goal"]
-            prompt = generate_conversation_prompt(question, athlete_stats, athlete_activities, conversation)
-            response = openai.Completion.create(
-                model="text-davinci-003",
-                prompt=prompt,
+            entry = {"role": "user", "content": question}
+            conversation.append(entry)
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=conversation,
                 temperature=0.6,
             )
 
-            # Open the file in append mode
-            with open('conversation/conversation.txt', 'a') as f:
-                # Append the response to the file
-                f.write(response.choices[0].text + '\n')
+            with open('conversation/conversation.json', 'w') as file:
+                json.dump(conversation, file)
 
-            return redirect(url_for("index", result=response.choices[0].text))
+
+            return redirect(url_for("workout_index", result=response.choices[0].text))
 
     result = request.args.get("result")
     return render_template("index.html", result=result)

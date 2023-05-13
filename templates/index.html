@@ -6,6 +6,20 @@
     href="{{ url_for('static', filename='shark_coach.png') }}"
   />
   <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}" />
+  <!-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    function updateResult(result) {
+      var words = result.split(' ');
+      var i = 0;
+      var interval = setInterval(function() {
+        $('#result').append(words[i] + ' ');
+        i++;
+        if (i >= words.length) {
+          clearInterval(interval);
+        }
+      }, 200); // Adjust the interval (in milliseconds) as desired
+    }
+  </script> -->
 </head>
 
 <body>
@@ -16,6 +30,8 @@
     <input type="submit" value="Generate workouts" />
   </form>
   {% if result %}
-  <div class="result">{{ result }}</div>
+  <div class=response>
+    <div class="result">{{ result }}</div>
+  </div>
   {% endif %}
 </body>

@@ -4,6 +4,7 @@ import openai
 import requests
 import secrets
 import json
+from flask import Response, stream_with_context
 from prompt_utils import generate_prompt, generate_conversation_prompt
 from utils import get_routes, get_athlete, get_athlete_stats, get_route_suggestions, get_athlete_activities, get_strava_access_token, clean_activity_json
 from flask import Flask, redirect, render_template, request, url_for, session
@@ -84,16 +85,14 @@ def workout_index():
             goal = request.form["goal"]
             prompt = generate_prompt(goal, athlete_stats, athlete_activities, route_suggestions)
             entry = {"role": "user", "content": prompt}
-            print("hello")
             conversation.append(entry)
             response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo-0301",
                 messages=conversation,
-                temperature=0.6,
-                max_tokens=500
+                temperature=0.8,
+                max_tokens=1000
             )
 
-            print("world")
             conversation.append(response.choices[0].message)
             # Open the file in append mode
             with open('conversation/conversation.json', 'w') as file:
@@ -101,15 +100,12 @@ def workout_index():
 
             session['count'] += 1
 
-            return redirect(url_for("workout_index", result=response.choices[0].text))
+            return redirect(url_for("workout_index", result=response.choices[0].message.content))
         else:
-            try:
-                with open('data.json', 'r') as file:
-                    conversation = json.load(file)
-            except FileNotFoundError:
-                print('Your conversation was lost.')
+            with open('conversation/conversation.json', 'r') as file:
+                conversation = json.load(file)
 
-            question = request.form["Goal"]
+            question = request.form["goal"]
             entry = {"role": "user", "content": question}
             conversation.append(entry)
             response = openai.ChatCompletion.create(
@@ -126,4 +122,13 @@ def workout_index():
             return redirect(url_for("workout_index", result=response.choices[0].message.content))
 
     result = request.args.get("result")
+    
     return render_template("index.html", result=result)
+    # def generate_chunks():
+    #     # Chunk the result into chunks of a specific size
+    #     chunk_size = 1024
+    #     for i in range(0, len(result), chunk_size):
+    #         yield result[i:i+chunk_size]
+    #
+    # # Stream the chunks as a response
+    # return Response(stream_with_context(generate_chunks()), mimetype="text/plain")
